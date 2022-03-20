@@ -1,0 +1,249 @@
+openapi: 3.0.3
+info:
+  title: Sample API
+  description: |
+    # Features
+    - Get users.
+    - Create user.
+  termsOfService: http://example.com/terms/
+  contact:
+    name: Customer Support
+    url: http://example.com/terms/
+    email: support@example.com
+  license:
+    name: WTFPL
+    url: http://www.wtfpl.net/about/
+  version: 1.0.0
+servers:
+- url: "https://example.com:{port}/{version}"
+  description: Production server
+  variables:
+    port:
+      enum:
+      - "2000"
+      - "3000"
+      default: "3000"
+    version:
+      description: API version
+      enum:
+      - v1
+      - v2
+      default: v2
+security:
+- apikeyAuth: []
+tags:
+- name: users
+  description: service user
+paths:
+  /ping:
+    get:
+      summary: Sample API get operation
+      description: Sample API get operation
+      responses:
+        "200":
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                type: string
+                example: Hello World!
+                x-content-type: application/json
+      security: []
+  /users/{userId}/reviews:
+    get:
+      tags:
+      - users
+      summary: Get specified user reviews
+      description: Get specified user reviews
+      parameters:
+      - name: userId
+        in: path
+        description: User identifier
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: sampleID
+      responses:
+        "200":
+          description: Success operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+                x-content-type: application/json
+      deprecated: false
+    post:
+      tags:
+      - users
+      summary: Send new review
+      parameters:
+      - name: userId
+        in: path
+        description: User identifier
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: sampleID
+      - name: X-Api-Key
+        in: header
+        description: Request API key
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: AAAA-BBBB-CCCC-DDDD
+      - name: token
+        in: cookie
+        description: one time token
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+        example: example
+      requestBody:
+        description: Contents of review
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      responses:
+        "201":
+          description: Success operation
+          headers:
+            location:
+              description: Created review URL
+              style: simple
+              explode: false
+              schema:
+                type: string
+                format: url
+        "400":
+          description: request error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientError'
+components:
+  schemas:
+    SampleInt32:
+      maximum: 100
+      exclusiveMaximum: true
+      minimum: 0
+      exclusiveMinimum: false
+      type: integer
+      format: int32
+    SampleDateString:
+      type: string
+      format: date
+    SampleString:
+      maxLength: 8
+      minLength: 4
+      type: string
+      nullable: true
+    SampleBoolean:
+      type: boolean
+    SampleObject:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/SampleObject_user'
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/SampleObject_reviews'
+    Review:
+      type: object
+      properties:
+        score:
+          type: integer
+          example: 3
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+        comment:
+          type: string
+          example: Good product
+      example:
+        score: 3
+        comment: Good product
+    ClientError:
+      type: object
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientError_errors'
+    SampleObject_user:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      example: null
+    SampleObject_reviews:
+      type: object
+      properties:
+        score:
+          type: integer
+          example: 3
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+        comment:
+          type: string
+          example: Good product
+      example: null
+    ClientError_errors:
+      type: object
+      properties:
+        field:
+          type: string
+        code:
+          type: string
+      example: null
+  responses:
+    "400":
+      description: request error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClientError'
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      description: User identifier
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+      example: sampleID
+  securitySchemes:
+    apikeyAuth:
+      type: apiKey
+      description: authorization with API key
+      name: X-API-Key
+      in: header

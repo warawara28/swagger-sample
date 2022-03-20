@@ -1,0 +1,184 @@
+openapi: "3.0.3"
+
+info:
+  title: "Sample API"
+  description: |
+    # Features
+    - Get users.
+    - Create user.
+  termsOfService: "http://example.com/terms/"
+  contact:
+    name: "Customer Support"
+    url: "http://example.com/terms/"
+    email: "support@example.com"
+  license:
+    name: "WTFPL"
+    url: "http://www.wtfpl.net/about/"
+  version: "1.0.0"
+
+servers:
+  - url: "https://example.com:{port}/{version}"
+    description: "Production server"
+    variables:
+      port:
+        enum: ["2000", "3000"]
+        default: "3000"
+      version:
+        description: "API version"
+        enum: ["v1", "v2"]
+        default: "v2"
+
+tags:
+  - name: "users"
+    description: "service user"
+
+paths:
+  "/ping":
+    get:
+      summary: "Sample API get operation"
+      description: "Sample API get operation"
+      responses:
+        "200":
+          description: "Success operation"
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Hello World!"
+      security: []
+
+  "/users/{userId}/reviews":
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      summary: "Get specified user reviews"
+      description: "Get specified user reviews"
+      deprecated: false
+      tags: ["users"]
+      responses:
+        "200":
+          description: "Success operation"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+    post:
+      summary: "Send new review"
+      tags: ["users"]
+      parameters:
+        - name: X-Api-Key
+          in: header
+          description: "Request API key"
+          schema: { type: string }
+          example: "AAAA-BBBB-CCCC-DDDD"
+        - name: token
+          in: cookie
+          description: "one time token"
+          schema: { type: string }
+          example: "example"
+      requestBody:
+        description: "Contents of review"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Review"
+      responses:
+        "201":
+          description: "Success operation"
+          headers:
+            location:
+              description: "Created review URL"
+              schema: { type: string, format: url }
+        "400":
+          $ref: "#/components/responses/400"
+
+security:
+  - apikeyAuth: []
+
+components:
+  schemas:
+    SampleInt32:
+      type: integer
+      format: int32
+      minimum: 0
+      exclusiveMinimum: false
+      maximum: 100
+      exclusiveMaximum: true
+    SampleDateString:
+      type: string
+      format: date
+    SampleString:
+      type: string
+      nullable: true
+      minLength: 4
+      maxLength: 8
+    SampleBoolean:
+      type: boolean
+    SampleObject:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id: { type: string }
+            name: { type: string }
+        reviews:
+          type: array
+          items:
+            type: object
+            properties:
+              score:
+                type: integer
+                enum: [1, 2, 3, 4, 5]
+                example: 3
+              comment:
+                type: string
+                example: "Good product"
+    Review:
+      type: object
+      properties:
+        score:
+          type: integer
+          enum: [1, 2, 3, 4, 5]
+          example: 3
+        comment:
+          type: string
+          example: "Good product"
+    ClientError:
+      type: object
+      properties:
+        code: { type: string }
+        type: { type: string }
+        message: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              code: { type: string }
+
+  parameters:
+    UserId:
+      name: "userId"
+      in: "path"
+      description: "User identifier"
+      required: true
+      schema: { type: string }
+      example: "sampleID"
+  responses:
+    400:
+      description: "request error"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ClientError"
+  securitySchemes:
+    apikeyAuth:
+      description: "authorization with API key"
+      type: apiKey
+      in: header
+      name: "X-API-Key"
